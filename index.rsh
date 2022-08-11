@@ -1,19 +1,29 @@
 "reach 0.1";
 
 const numberToGuess = "2000";
-const [isOutCome, T_WINS, P_WINS] = makeEnum(2);
+const [isOutCome, T_WINS, P_WINS, DRAW] = makeEnum(3);
 const winner = (valueTrevor, valuePauline) => {
-  if (valueTrevor == numberToGuess) {
-    return "Trevor";
+  if (valueTrevor === numberToGuess) {
+    return 1;
   } else if (valuePauline === numberToGuess) {
-    return "Pauline";
+    return 2;
+  } else if (valueTrevor !== numberToGuess && valuePauline !== numberToGuess) {
+    return 3;
   }
 };
 
-assert(winner(numberToGuess, 23232) === "Trevor");
-assert(winner(3345345, numberToGuess) === "Pauline");
+assert(winner(numberToGuess, 23232) === 1);
+assert(winner(3345345, numberToGuess) === 2);
+assert(winner(3345345, 3434) === 3);
+
+forall(UInt, (valueTrevor) =>
+  forall(UInt, (valuePauline) =>
+    assert(isOutCome(winner(valueTrevor, valuePauline)))
+  )
+);
 
 const Player = {
+  ...hasRandom,
   getHand: Fun([], UInt),
   seeOutCome: Fun([UInt], Null),
 }; //Interface
