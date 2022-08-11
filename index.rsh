@@ -1,6 +1,6 @@
 "reach 0.1";
 
-const numberToGuess = "2000";
+const numberToGuess = 2000;
 const [isOutCome, T_WINS, P_WINS, DRAW] = makeEnum(3);
 const winner = (valueTrevor, valuePauline) => {
   if (valueTrevor === numberToGuess) {
@@ -15,12 +15,6 @@ const winner = (valueTrevor, valuePauline) => {
 assert(winner(numberToGuess, 23232) === 1);
 assert(winner(3345345, numberToGuess) === 2);
 assert(winner(3345345, 3434) === 3);
-
-forall(UInt, (valueTrevor) =>
-  forall(UInt, (valuePauline) =>
-    assert(isOutCome(winner(valueTrevor, valuePauline)))
-  )
-);
 
 const Player = {
   ...hasRandom,
@@ -41,9 +35,11 @@ export const main = Reach.App(() => {
 
   Trevor.only(() => {
     const wager = declassify(interact.wager);
-    const valueTrevor = declassify(interact.getHand());
+    const _handTrevor = interact.getHand();
+    const [_commitTrevor, _saltTrevor] = makeCommitment(interact, _handTrevor);
+    const commitTrevor = declassify(_commitTrevor);
   });
-  Trevor.publish(wager, valueTrevor).pay(wager);
+  Trevor.publish(wager, commitTrevor).pay(wager);
   commit();
 
   Pauline.only(() => {
