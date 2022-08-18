@@ -9,6 +9,8 @@ const winner = (valueTrevor, valuePauline) => {
     return 2;
   } else if (valueTrevor !== numberToGuess && valuePauline !== numberToGuess) {
     return 3;
+  } else {
+    return 0;
   }
 };
 
@@ -42,22 +44,32 @@ export const main = Reach.App(() => {
   Trevor.publish(wager, commitTrevor).pay(wager);
   commit();
 
+  unknowable(Pauline, Trevor(_handTrevor, _saltTrevor));
   Pauline.only(() => {
     interact.acceptWager(wager);
-    const valuePauline = declassify(interact.getHand());
+    const handPauline = declassify(interact.getHand());
   });
-  Pauline.publish(valuePauline).pay(wager);
+  Pauline.publish(handPauline).pay(wager);
+  commit();
 
-  const outcome = (valueTrevor + (4 - valuePauline)) % 3;
-  const result =
-    valueTrevor === numberToGuess ? 2 : valuePauline === numberToGuess ? 0 : 1;
+  Trevor.only(() => {
+    const saltTrevor = declassify(_saltTrevor);
+    const handTrevor = declassify(_handTrevor);
+  });
+  Trevor.publish(saltTrevor, handTrevor);
+  checkCommitment(commitTrevor, saltTrevor, handTrevor);
+
+  // const outcome = (valueTrevor + (4 - valuePauline)) % 3;
+  // const result =
+  // valueTrevor === numberToGuess ? 2 : valuePauline === numberToGuess ? 0 : 1;
+  const outcome = winner(handTrevor, handPauline);
   const [forTrevor, forPauline] =
-    result == 2 ? [2, 0] : result == 0 ? [0, 2] : [1, 1];
+    outcome == 2 ? [2, 0] : outcome == 0 ? [0, 2] : [1, 1];
   transfer(forTrevor * wager).to(Trevor);
   transfer(forPauline * wager).to(Pauline);
   commit();
 
   each([Trevor, Pauline], () => {
-    interact.seeOutCome(result);
+    interact.seeOutCome(outcome);
   });
 });
