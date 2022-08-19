@@ -22,12 +22,14 @@ const Player = {
   ...hasRandom,
   getHand: Fun([], UInt),
   seeOutCome: Fun([UInt], Null),
+  informTimeout: Fun([], Null),
 }; //Interface
 
 export const main = Reach.App(() => {
   const Trevor = Participant("Trevor", {
     ...Player,
     wager: UInt,
+    deadline: UInt,
   });
   const Pauline = Participant("Pauline", {
     ...Player,
@@ -35,13 +37,20 @@ export const main = Reach.App(() => {
   });
   init();
 
+  const informTimeout = () => {
+    each([Trevor, Pauline], () => {
+      interact.informTimeout();
+    });
+  };
+
   Trevor.only(() => {
     const wager = declassify(interact.wager);
     const _handTrevor = interact.getHand();
     const [_commitTrevor, _saltTrevor] = makeCommitment(interact, _handTrevor);
     const commitTrevor = declassify(_commitTrevor);
+    const deadline = declassify(interact.deadline);
   });
-  Trevor.publish(wager, commitTrevor).pay(wager);
+  Trevor.publish(wager, commitTrevor, deadline).pay(wager);
   commit();
 
   unknowable(Pauline, Trevor(_handTrevor, _saltTrevor));
@@ -49,7 +58,9 @@ export const main = Reach.App(() => {
     interact.acceptWager(wager);
     const handPauline = declassify(interact.getHand());
   });
-  Pauline.publish(handPauline).pay(wager);
+  Pauline.publish(handPauline)
+    .pay(wager)
+    .timeout(relativeTime(deadline), () => closeTo(Trevor, informTimeout));
   commit();
 
   Trevor.only(() => {
