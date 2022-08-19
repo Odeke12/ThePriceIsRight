@@ -1,4 +1,4 @@
-import { loadStdlib } from "@reach-sh/stdlib";
+import { loadStdlib, ask } from "@reach-sh/stdlib";
 import * as backend from "./build/index.main.mjs";
 const stdlib = loadStdlib();
 
@@ -9,20 +9,24 @@ const accPauline = await stdlib.newTestAccount(startingBalance);
 const fmt = (x) => stdlib.formatCurrency(x, 4);
 const getBalance = async (who) => fmt(await stdlib.balanceOf(who));
 
-const ctcTrevor = accTrevor.contract(backend);
+const ctcTrevor = accTrevor.contract(backend); //Is there an issue with this line
 const ctcPauline = accPauline.contract(backend, ctcTrevor.getInfo());
 
-const Player = (Who) => {
+const Player = (Who) => ({
   //Contructor
+  ...stdlib.hasRandom,
   getHand: () => {
     const hand = Math.floor(Math.random());
     console.log(`${Who} guessed ${hand}`);
     return hand;
-  };
+  },
   seeOutCome: (outcome) => {
     console.log(`${Who} saw outcome ${outcome}`);
-  };
-};
+  },
+  informTimeout: () => {
+    console.log(`${Who} observed a timeout`);
+  },
+});
 
 await Promise.all([
   ctcTrevor.p.Trevor({
@@ -31,8 +35,15 @@ await Promise.all([
   }),
   ctcPauline.p.Pauline({
     ...Player("Pauline"),
-    acceptWager: (amt) => {
-      console.log(`Pauline accepts the wager of ${fmt(amt)}`);
+    acceptWager: async (amt) => {
+      if (Math.random() <= 0.5) {
+        for (let i = 0; i < 10; i++) {
+          console.log(`Pauline accepts the wager of ${fmt(amt)}`);
+          await stdlib.wait(1);
+        }
+      } else {
+        console.log(`Bob accepts the wager of ${fmt(amt)}.`);
+      }
     },
   }),
 ]);
