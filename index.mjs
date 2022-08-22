@@ -2,12 +2,14 @@ import { loadStdlib, ask } from "@reach-sh/stdlib";
 import * as backend from "./build/index.main.mjs";
 const stdlib = loadStdlib();
 
-const startingBalance = stdlib.parseCurrency(100);
+const startingBalance = stdlib.parseCurrency(10);
 const accTrevor = await stdlib.newTestAccount(startingBalance);
 const accPauline = await stdlib.newTestAccount(startingBalance);
 
 const fmt = (x) => stdlib.formatCurrency(x, 4);
 const getBalance = async (who) => fmt(await stdlib.balanceOf(who));
+const beforeTrevor = await getBalance(accTrevor);
+const beforePauline = await getBalance(accPauline);
 
 const ctcTrevor = accTrevor.contract(backend); //Is there an issue with this line
 const ctcPauline = accPauline.contract(backend, ctcTrevor.getInfo());
@@ -42,13 +44,13 @@ await Promise.all([
           await stdlib.wait(1);
         }
       } else {
-        console.log(`Bob accepts the wager of ${fmt(amt)}.`);
+        console.log(`Pauline accepts the wager of ${fmt(amt)}.`);
       }
     },
   }),
 ]);
 
-const afterAlice = await getBalance(accTrevor);
-const afterBob = await getBalance(accPauline);
-console.log(`Alice went from ${beforeAlice} to ${afterAlice}.`);
-console.log(`Bob went from ${beforeBob} to ${afterBob}.`);
+const afterTrevor = await getBalance(accTrevor);
+const afterPauline = await getBalance(accPauline);
+console.log(`Trevor went from ${beforeTrevor} to ${afterTrevor}.`);
+console.log(`Pauline went from ${beforePauline} to ${afterPauline}.`);
