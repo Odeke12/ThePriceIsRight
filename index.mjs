@@ -2,12 +2,44 @@ import { loadStdlib, ask } from "@reach-sh/stdlib";
 import * as backend from "./build/index.main.mjs";
 const stdlib = loadStdlib();
 
+const isTrevor = await ask.ask("Are you Trevor", ask.yesno);
+const who = isTrevor ? "Trevor" : "Pauline";
+
+console.log(`Starting Rock, Paper, Scissors! as ${who}`);
+let acc = null;
+const createAcc = await ask.ask(
+  `Would you like to create an account? (only possible on devnet)`,
+  ask.yesno
+);
+
+if (createAcc) {
+  acc = await stdlib.newTestAccount(stdlib.parseCurrency(1000));
+} else {
+  const secret = await ask.ask("What is your secret", (x) => x);
+  acc = await newTestAccountFromSecret(secret);
+}
+
+let ctc = null;
+if (isTrevor) {
+  ctc = acc.contract(backend);
+  ctc.getInfo().then((info) => {
+    console.log(`The contract is deplyed as ${JSON.stringify(info)}`);
+  });
+} else {
+  const info = ask.ask("Please paste the contract information", JSON.parse);
+  ctc = acc.contract(backend, info);
+}
+
+const fmt = (x) => stdlib.formatCurrency(x, 4);
+const getBalance = async () => fmt(await stdlib.balanceOf(acc));
+const before = await getBalance();
+console.log(`Your balance is ${before}`);
+const interact = { ...stdlib.hasRandom };
+
 const startingBalance = stdlib.parseCurrency(10);
 const accTrevor = await stdlib.newTestAccount(startingBalance);
 const accPauline = await stdlib.newTestAccount(startingBalance);
 
-const fmt = (x) => stdlib.formatCurrency(x, 4);
-const getBalance = async (who) => fmt(await stdlib.balanceOf(who));
 const beforeTrevor = await getBalance(accTrevor);
 const beforePauline = await getBalance(accPauline);
 
