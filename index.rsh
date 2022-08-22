@@ -107,10 +107,13 @@ export const main = Reach.App(() => {
   // const result =
   // valueTrevor === numberToGuess ? 2 : valuePauline === numberToGuess ? 0 : 1;
   // const outcome = winner(handTrevor, handPauline);
+  assert(outcome == T_WINS || outcome == P_WINS);
   const [forTrevor, forPauline] =
     outcome == 0 ? [2, 0] : outcome == 1 ? [0, 2] : [1, 1]; //Simplify this
-  transfer(forTrevor * wager).to(Trevor);
-  transfer(forPauline * wager).to(Pauline);
+
+  // transfer(forTrevor * wager).to(Trevor);
+  // transfer(forPauline * wager).to(Pauline);
+  transfer(2 * wager).to(outcome == T_WINS ? Trevor : Pauline);
   commit();
 
   each([Trevor, Pauline], () => {
