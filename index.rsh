@@ -53,6 +53,7 @@ export const main = Reach.App(() => {
     const wager = declassify(interact.wager);
     const deadline = declassify(interact.deadline);
   });
+
   Trevor.publish(wager, deadline).pay(wager);
   commit();
 
