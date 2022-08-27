@@ -5,7 +5,7 @@ const stdlib = loadStdlib();
 const isTrevor = await ask.ask("Are you Trevor", ask.yesno);
 const who = isTrevor ? "Trevor" : "Pauline";
 
-console.log(`Starting Rock, Paper, Scissors! as ${who}`);
+console.log(`The Price is right as ${who}`);
 let acc = null;
 const createAcc = await ask.ask(
   `Would you like to create an account? (only possible on devnet)`,
@@ -34,55 +34,52 @@ const fmt = (x) => stdlib.formatCurrency(x, 4);
 const getBalance = async () => fmt(await stdlib.balanceOf(acc));
 const before = await getBalance();
 console.log(`Your balance is ${before}`);
+
 const interact = { ...stdlib.hasRandom };
 
-const startingBalance = stdlib.parseCurrency(10);
-const accTrevor = await stdlib.newTestAccount(startingBalance);
-const accPauline = await stdlib.newTestAccount(startingBalance);
+interact.informTimeout = () => {
+  console.log("There was a timeout");
+  process.exit(1);
+};
 
-const beforeTrevor = await getBalance(accTrevor);
-const beforePauline = await getBalance(accPauline);
+if (isTrevor) {
+  const amt = await ask.ask(
+    `How much do you want to wager?`,
+    stdlib.parseCurrency
+  );
+  interact.wager = amt;
+  interact.deadline = { ETH: 100, ALGO: 100, CFX: 1000 }[stdlib.connector];
+} else {
+  interact.acceptWager = async (amt) => {
+    const accepted = await ask.ask(
+      `Do you accept the wager of ${fmt(amt)}?`,
+      ask.yesno
+    );
+    if (!accepted) {
+      process.exit(0);
+    }
+  };
+}
 
-const ctcTrevor = accTrevor.contract(backend); //Is there an issue with this line
-const ctcPauline = accPauline.contract(backend, ctcTrevor.getInfo());
+interact.getHand = async () => {
+  const hand = await ask.ask(`Guess a number from 1 to 10`, (x) => {
+    if (x === undefined) {
+      throw Error(`Not a valid number`);
+    }
+    return x;
+  });
+  console.log(`You chose ${hand}`);
+  return hand;
+};
 
-const Player = (Who) => ({
-  //Contructor
-  ...stdlib.hasRandom,
-  getHand: () => {
-    const hand = Math.floor(Math.random());
-    console.log(`${Who} guessed ${hand}`);
-    return hand;
-  },
-  seeOutCome: (outcome) => {
-    console.log(`${Who} saw outcome ${outcome}`);
-  },
-  informTimeout: () => {
-    console.log(`${Who} observed a timeout`);
-  },
-});
+const OUTCOME = ["Trevor wins", "Pauline wins", "Draw"];
+interact.seeOutCome = async (outcome) => {
+  console.log(`The outcome is : ${OUTCOME[outcome]}`);
+};
 
-await Promise.all([
-  ctcTrevor.p.Trevor({
-    ...Player("Trevor"),
-    wager: stdlib.parseCurrency(5),
-  }),
-  ctcPauline.p.Pauline({
-    ...Player("Pauline"),
-    acceptWager: async (amt) => {
-      if (Math.random() <= 0.5) {
-        for (let i = 0; i < 10; i++) {
-          console.log(`Pauline accepts the wager of ${fmt(amt)}`);
-          await stdlib.wait(1);
-        }
-      } else {
-        console.log(`Pauline accepts the wager of ${fmt(amt)}.`);
-      }
-    },
-  }),
-]);
+const part = isTrevor ? ctc.p.Trevor : ctc.p.Pauline;
 
-const afterTrevor = await getBalance(accTrevor);
-const afterPauline = await getBalance(accPauline);
-console.log(`Trevor went from ${beforeTrevor} to ${afterTrevor}.`);
-console.log(`Pauline went from ${beforePauline} to ${afterPauline}.`);
+await part(interact);
+const after = await getBalance();
+console.log(`Your balance is now ${after}`);
+ask.done();
