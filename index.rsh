@@ -1,6 +1,6 @@
 "reach 0.1";
 
-const numberToGuess = 2000;
+const numberToGuess = 8;
 const [isOutCome, T_WINS, P_WINS, DRAW] = makeEnum(3);
 const winner = (valueTrevor, valuePauline) => {
   if (valueTrevor === numberToGuess) {
