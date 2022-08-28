@@ -1,4 +1,5 @@
 import React from "react";
+import { Button, TextField, Box } from "@mui/material";
 
 const exports = {};
 
@@ -8,6 +9,8 @@ const exports = {};
 exports.GetGuess = class extends React.Component {
   render() {
     const { parent, playable, guess } = this.props;
+    // const { value } = this.state;
+    console.log(guess);
     return (
       <div>
         {guess ? "It was incorrect. Pick again." : ""}
@@ -19,14 +22,20 @@ exports.GetGuess = class extends React.Component {
           type="number"
           min={0}
           max={10}
-          value={this.state.guess}
+          //   value={this.state.guess}
           onChange={(e) => {
-            this.setState({ guess: e.target.value });
+            this.setState({ value: e.currentTarget.value });
           }}
         />
-        <button on Click={() => parent.payGuess(this.state.guess)}>
+        <Button
+          variant="contained"
+          onClick={() => {
+            parent.playGuess(this.state.value);
+            console.log(this.state.value);
+          }}
+        >
           Submit Guess
-        </button>
+        </Button>
       </div>
     );
   }
@@ -40,12 +49,15 @@ exports.WaitingForResults = class extends React.Component {
 
 exports.Done = class extends React.Component {
   render() {
-    const { outcome, price } = this.props;
+    const {
+      outcome,
+      // , price
+    } = this.props;
     return (
       <div>
         Thank you for playing.
-        <br></br>
-        The Price was: {price || "Unknown"}
+        {/* <br></br>
+        The Price was: {price || "Unknown"} */}
         <br></br>
         The outcome of this game was:
         <br />
