@@ -81,7 +81,6 @@ class Player extends React.Component {
     return guess;
   }
   seeOutCome(i) {
-    console.log(i);
     this.setState({
       view: "Done",
       outcome: intToOutcome[i],
