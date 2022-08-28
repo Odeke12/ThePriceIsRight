@@ -1,22 +1,29 @@
 "reach 0.1";
 
+// const { randomInt } = import("crypto");
+// const getRandomValue = (min, max) => {
+//   Math.floor(Math.random() * (max - min)) + min;
+// };
 const numberToGuess = 8;
-const [isOutCome, T_WINS, P_WINS, DRAW] = makeEnum(3);
+const [isOutCome, T_WINS, P_WINS, DRAW, ALL_WIN] = makeEnum(4);
 const winner = (valueTrevor, valuePauline) => {
-  if (valueTrevor === numberToGuess) {
+  if (valuePauline === numberToGuess && valueTrevor === numberToGuess) {
+    return 3;
+  } else if (valueTrevor === numberToGuess) {
     return 0;
   } else if (valuePauline === numberToGuess) {
     return 1;
   } else if (valueTrevor !== numberToGuess && valuePauline !== numberToGuess) {
     return 2;
   } else {
-    return 0;
+    return 4;
   }
 };
 
 assert(winner(numberToGuess, 23232) === T_WINS);
 assert(winner(3345345, numberToGuess) === P_WINS);
 assert(winner(3345345, 3434) === DRAW);
+// assert(winner(numberToGuess, numberToGuess) === ALL_WIN);
 
 forall(UInt, (handTrevor) =>
   forall(UInt, (handPauline) =>
@@ -67,9 +74,10 @@ export const main = Reach.App(() => {
   var outcome = DRAW;
   invariant(balance() == 2 * wager && isOutCome(outcome));
 
-  while (outcome == DRAW) {
+  while (outcome == DRAW || outcome == ALL_WIN) {
+    if (outcome == ALL_WIN) {
+    }
     commit();
-
     Trevor.only(() => {
       const _handTrevor = interact.getGuess();
       const [_commitTrevor, _saltTrevor] = makeCommitment(
@@ -97,7 +105,9 @@ export const main = Reach.App(() => {
       const saltTrevor = declassify(_saltTrevor);
       const handTrevor = declassify(_handTrevor);
     });
-    Trevor.publish(saltTrevor, handTrevor);
+    Trevor.publish(saltTrevor, handTrevor).timeout(relativeTime(deadline), () =>
+      closeTo(Pauline, informTimeout)
+    );
     checkCommitment(commitTrevor, saltTrevor, handTrevor);
 
     outcome = winner(handTrevor, handPauline);
